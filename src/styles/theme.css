@@ -39,7 +39,7 @@
   --sidebar-ring: #ec4899;
 }
 
-.pink-theme {
+.dark {
   --background: oklch(61.114% 0.25339 336.517);
   --foreground: oklch(0.985 0 0);
   --card: oklch(54.489% 0.19118 355.284);
@@ -84,7 +84,7 @@
   * {
     border-color: var(--border);
     outline-color: var(--ring);
-    content-visibility: 0.5;
+    outline-opacity: 0.5;
   }
 
   body {
