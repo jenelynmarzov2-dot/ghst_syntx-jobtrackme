@@ -39,28 +39,46 @@ export default function App() {
 
   const [applications, setApplications] = useState<JobApplication[]>([]);
 
-  // Check for existing session on mount and listen for auth state changes
+  // Check for existing session on mount
   useEffect(() => {
     checkSession();
+  }, []);
 
-    // Listen for auth state changes (important for OAuth redirects)
-    const { createClient } = require('@supabase/supabase-js');
-    const supabase = createClient(
-      `https://${projectId}.supabase.co`,
-      publicAnonKey
-    );
+  // Separate effect for auth state changes
+  useEffect(() => {
+    let subscription: any = null;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          handleLogin(session.user.email || '', session.access_token);
-        } else if (event === 'SIGNED_OUT') {
-          handleLogout();
-        }
+    const setupAuth = async () => {
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(
+          `https://${projectId}.supabase.co`,
+          publicAnonKey
+        );
+
+        const { data } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+              handleLogin(session.user.email || '', session.access_token);
+            } else if (event === 'SIGNED_OUT') {
+              handleLogout();
+            }
+          }
+        );
+
+        subscription = data.subscription;
+      } catch (error) {
+        console.error('Failed to setup auth listener:', error);
       }
-    );
+    };
 
-    return () => subscription.unsubscribe();
+    setupAuth();
+
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
   }, []);
 
   const checkSession = async () => {
