@@ -364,28 +364,34 @@ export default function App() {
           {/* Home Tab */}
           <TabsContent value="home" className="space-y-6">
             {/* Profile Card */}
-            <Card>
+            <Card className="shadow-xl border-2 border-pink-200 bg-gradient-to-br from-white to-pink-50">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <Avatar className="w-16 h-16">
-                      <AvatarImage src={personalInfo.imageUrl} />
-                      <AvatarFallback>
-                        {personalInfo.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative">
+                      <Avatar className="w-16 h-16 border-4 border-pink-300 shadow-lg">
+                        <AvatarImage src={personalInfo.imageUrl} />
+                        <AvatarFallback className="bg-gradient-to-br from-pink-300 to-pink-500 text-white">
+                          {personalInfo.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-1 -right-1 bg-pink-500 rounded-full p-1">
+                        <span className="text-white text-xs">✨</span>
+                      </div>
+                    </div>
                     <div>
-                      <CardTitle>{personalInfo.name}</CardTitle>
-                      <CardDescription>{personalInfo.title}</CardDescription>
+                      <CardTitle className="text-pink-700">{personalInfo.name}</CardTitle>
+                      <CardDescription className="text-pink-600">{personalInfo.title}</CardDescription>
                     </div>
                   </div>
                   <Button
                     variant="outline"
                     onClick={() => setShowProfileDialog(true)}
+                    className="border-2 border-pink-300 text-pink-600 hover:bg-pink-50 hover:text-pink-700 shadow-sm"
                   >
                     Edit Profile
                   </Button>
@@ -470,51 +476,56 @@ export default function App() {
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
-            <Card>
+            <Card className="shadow-xl border-2 border-pink-200 bg-gradient-to-br from-white to-pink-50">
               <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-pink-700">Personal Information 💕</CardTitle>
+                <CardDescription className="text-pink-600">
                   Manage your personal details and profile picture
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex flex-col items-center gap-4">
-                  <Avatar className="w-32 h-32">
-                    <AvatarImage src={personalInfo.imageUrl} />
-                    <AvatarFallback className="text-2xl">
-                      {personalInfo.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <Button onClick={() => setShowProfileDialog(true)}>
+                  <div className="relative">
+                    <Avatar className="w-32 h-32 border-4 border-pink-300 shadow-lg">
+                      <AvatarImage src={personalInfo.imageUrl} />
+                      <AvatarFallback className="text-2xl bg-gradient-to-br from-pink-300 to-pink-500 text-white">
+                        {personalInfo.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="absolute -bottom-2 -right-2 bg-pink-500 rounded-full p-2">
+                      <span className="text-white">✨</span>
+                    </div>
+                  </div>
+                  <Button onClick={() => setShowProfileDialog(true)} className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white shadow-lg">
                     Edit Profile
                   </Button>
                 </div>
 
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-muted p-4 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Full Name</p>
-                      <p className="font-medium">{personalInfo.name}</p>
+                    <div className="bg-pink-50 p-4 rounded-lg border-2 border-pink-100">
+                      <p className="text-sm text-pink-600">Full Name</p>
+                      <p className="font-medium text-pink-800">{personalInfo.name}</p>
                     </div>
-                    <div className="bg-muted p-4 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Professional Title</p>
-                      <p className="font-medium">{personalInfo.title}</p>
+                    <div className="bg-pink-50 p-4 rounded-lg border-2 border-pink-100">
+                      <p className="text-sm text-pink-600">Professional Title</p>
+                      <p className="font-medium text-pink-800">{personalInfo.title}</p>
                     </div>
-                    <div className="bg-muted p-4 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="font-medium">{personalInfo.email}</p>
+                    <div className="bg-pink-50 p-4 rounded-lg border-2 border-pink-100">
+                      <p className="text-sm text-pink-600">Email</p>
+                      <p className="font-medium text-pink-800">{personalInfo.email}</p>
                     </div>
-                    <div className="bg-muted p-4 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Phone</p>
-                      <p className="font-medium">{personalInfo.phone}</p>
+                    <div className="bg-pink-50 p-4 rounded-lg border-2 border-pink-100">
+                      <p className="text-sm text-pink-600">Phone</p>
+                      <p className="font-medium text-pink-800">{personalInfo.phone}</p>
                     </div>
-                    <div className="bg-muted p-4 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Location</p>
-                      <p className="font-medium">{personalInfo.location}</p>
+                    <div className="bg-pink-50 p-4 rounded-lg border-2 border-pink-100">
+                      <p className="text-sm text-pink-600">Location</p>
+                      <p className="font-medium text-pink-800">{personalInfo.location}</p>
                     </div>
                   </div>
                 </div>
@@ -522,35 +533,35 @@ export default function App() {
             </Card>
 
             {/* Application Summary */}
-            <Card>
+            <Card className="shadow-xl border-2 border-pink-200 bg-gradient-to-br from-white to-pink-50">
               <CardHeader>
-                <CardTitle>Application Summary</CardTitle>
+                <CardTitle className="text-pink-700">Application Summary 📊</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                    <span>Total Applications</span>
-                    <span className="font-semibold">{applications.length}</span>
+                  <div className="flex justify-between items-center p-3 bg-pink-50 rounded-lg border-2 border-pink-100">
+                    <span className="text-pink-700">Total Applications</span>
+                    <span className="font-semibold text-pink-800">{applications.length}</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border-2 border-blue-100">
                     <span className="text-blue-700">Applied</span>
                     <span className="font-semibold text-blue-600">
                       {getStatusCount("applied")}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border border-yellow-100">
+                  <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border-2 border-yellow-100">
                     <span className="text-yellow-700">Interviews</span>
                     <span className="font-semibold text-yellow-600">
                       {getStatusCount("interview")}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-100">
+                  <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border-2 border-green-100">
                     <span className="text-green-700">Offers</span>
                     <span className="font-semibold text-green-600">
                       {getStatusCount("offer")}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-100">
+                  <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border-2 border-red-100">
                     <span className="text-red-700">Rejected</span>
                     <span className="font-semibold text-red-600">
                       {getStatusCount("rejected")}
