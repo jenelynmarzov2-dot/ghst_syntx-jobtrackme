@@ -196,7 +196,7 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
       >
         <DialogHeader>
           <DialogTitle className="text-2xl text-center text-pink-700">
-            {isSignUp ? "Create Account" : "Welcome Back"}
+            {isSignUp ? "Create Account ✨" : "Welcome Back 💕"}
           </DialogTitle>
           <DialogDescription className="text-center text-pink-600">
             {isSignUp

@@ -316,7 +316,7 @@ export default function App() {
                 <Calendar className="w-6 h-6 text-primary-foreground" />
               </div>
               <h1 className="text-2xl font-bold text-foreground">
-                Job Application Tracker
+                Job Application Tracker ✨
               </h1>
             </div>
             <div className="flex items-center gap-2">
