@@ -26,31 +26,54 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
     setLoading(true);
 
     try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        `https://${projectId}.supabase.co`,
+        publicAnonKey
+      );
+
       if (isSignUp) {
-        // Sign up flow
-        const response = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-63111a90/signup`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${publicAnonKey}`,
-            },
-            body: JSON.stringify({ email, password, name }),
+        // Sign up flow using Supabase Auth directly
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              name: name,
+            }
           }
-        );
+        });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to create account');
+        if (error) {
+          throw new Error(error.message);
         }
 
-        // After signup, automatically sign in
-        await handleSignIn(email, password);
+        if (data.user && !data.session) {
+          // User created but needs email confirmation
+          setError('Account created! Please check your email to confirm your account before signing in.');
+          setLoading(false);
+          return;
+        }
+
+        if (data.session && data.user) {
+          onLogin(data.user.email || email, data.session.access_token);
+        }
+        setLoading(false);
       } else {
         // Sign in flow
-        await handleSignIn(email, password);
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        if (data.session && data.user) {
+          onLogin(data.user.email || email, data.session.access_token);
+        }
+        setLoading(false);
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred');
@@ -58,27 +81,7 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
     }
   };
 
-  const handleSignIn = async (userEmail: string, userPassword: string) => {
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(
-      `https://${projectId}.supabase.co`,
-      publicAnonKey
-    );
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: userEmail,
-      password: userPassword,
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    if (data.session) {
-      onLogin(data.user.email || userEmail, data.session.access_token);
-    }
-    setLoading(false);
-  };
 
   const handleGoogleSignIn = async () => {
     setError("");
