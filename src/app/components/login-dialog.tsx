@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Mail, Lock, User as UserIcon } from "lucide-react";
+import { Mail, Lock, User as UserIcon, Eye, EyeOff } from "lucide-react";
 import { projectId, publicAnonKey } from "../../../utils/supabase/info";
 
 interface LoginDialogProps {
@@ -18,6 +18,7 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,14 +166,21 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-pink-400" />
               <Input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="border-2 border-pink-200 focus:border-pink-400 pl-10"
+                className="border-2 border-pink-200 focus:border-pink-400 pl-10 pr-10"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-pink-400 hover:text-pink-600"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
             {isSignUp && (
               <p className="text-xs text-pink-500">Minimum 6 characters</p>
