@@ -56,7 +56,14 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
         }
 
         if (data.session && data.user) {
-          onLogin(data.user.email || email, data.session.access_token);
+          // User created and confirmed - show success message instead of auto-login
+          setError('Account created successfully! You can now sign in with your credentials.');
+          setLoading(false);
+          // Reset form to sign-in mode
+          setIsSignUp(false);
+          setName("");
+          setPassword("");
+          return;
         }
         setLoading(false);
       } else {
