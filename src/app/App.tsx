@@ -44,23 +44,35 @@ export default function App() {
     checkSession();
 
     // Listen for auth state changes (important for OAuth redirects)
-    const { createClient } = require('@supabase/supabase-js');
-    const supabase = createClient(
-      `https://${projectId}.supabase.co`,
-      publicAnonKey
-    );
+    let cleanupFn: (() => void) | undefined;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          handleLogin(session.user.email || '', session.access_token);
-        } else if (event === 'SIGNED_OUT') {
-          handleLogout();
+    const setupAuthListener = async () => {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        `https://${projectId}.supabase.co`,
+        publicAnonKey
+      );
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (event === 'SIGNED_IN' && session) {
+            handleLogin(session.user.email || '', session.access_token);
+          } else if (event === 'SIGNED_OUT') {
+            handleLogout();
+          }
         }
-      }
-    );
+      );
 
-    return () => subscription.unsubscribe();
+      cleanupFn = () => subscription.unsubscribe();
+    };
+
+    setupAuthListener();
+
+    return () => {
+      if (cleanupFn) {
+        cleanupFn();
+      }
+    };
   }, []);
 
   const checkSession = async () => {
