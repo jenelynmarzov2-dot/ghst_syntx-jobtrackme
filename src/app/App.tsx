@@ -25,11 +25,11 @@ export default function App() {
   const [editingApplication, setEditingApplication] = useState<JobApplication | null>(null);
 
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
-    name: "John Doe",
-    email: "john.doe@email.com",
-    phone: "+1 (555) 123-4567",
-    location: "San Francisco, CA",
-    title: "Software Engineer",
+    name: " ",
+    email: " ",
+    phone: " ",
+    location: " ",
+    title: " ",
     imageUrl: "",
     country: "",
     city: "",
@@ -39,9 +39,28 @@ export default function App() {
 
   const [applications, setApplications] = useState<JobApplication[]>([]);
 
-  // Check for existing session on mount
+  // Check for existing session on mount and listen for auth state changes
   useEffect(() => {
     checkSession();
+
+    // Listen for auth state changes (important for OAuth redirects)
+    const { createClient } = require('@supabase/supabase-js');
+    const supabase = createClient(
+      `https://${projectId}.supabase.co`,
+      publicAnonKey
+    );
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          handleLogin(session.user.email || '', session.access_token);
+        } else if (event === 'SIGNED_OUT') {
+          handleLogout();
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const checkSession = async () => {

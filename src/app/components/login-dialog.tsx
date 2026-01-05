@@ -83,7 +83,7 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
   const handleGoogleSignIn = async () => {
     setError("");
     setLoading(true);
-    
+
     try {
       const { createClient } = await import('@supabase/supabase-js');
       const supabase = createClient(
@@ -91,10 +91,13 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
         publicAnonKey
       );
 
+      // Use the current origin, but ensure it's the correct URL for OAuth redirects
+      const redirectUrl = `${window.location.origin}/`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: redirectUrl,
         },
       });
 
