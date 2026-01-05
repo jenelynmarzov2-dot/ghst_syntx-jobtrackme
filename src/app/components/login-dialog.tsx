@@ -91,8 +91,8 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
         publicAnonKey
       );
 
-      // Determine redirect URL based on environment
-      let redirectUrl = `${window.location.origin}/`;
+      // Use Supabase's OAuth callback URL
+      let redirectUrl = `https://nbmzwaarcsuukhlqjyvy.supabase.co/auth/v1/callback`;
 
 
 
