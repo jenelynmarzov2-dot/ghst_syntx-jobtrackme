@@ -91,8 +91,13 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
         publicAnonKey
       );
 
-      // Use the current origin, but ensure it's the correct URL for OAuth redirects
-      const redirectUrl = `${window.location.origin}/`;
+      // Determine redirect URL based on environment
+      let redirectUrl = `${window.location.origin}/`;
+
+      // For local development, use localhost with the correct port
+      if (window.location.hostname === 'localhost') {
+        redirectUrl = `http://localhost:5173/`;
+      }
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
