@@ -306,17 +306,17 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b-2 border-pink-200 sticky top-0 z-10 shadow-md">
+      <header className="bg-background/80 backdrop-blur-sm border-b sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-pink-400 to-pink-600 p-2 rounded-full shadow-lg">
-                <Calendar className="w-6 h-6 text-white" />
+              <div className="bg-primary p-2 rounded-full shadow-sm">
+                <Calendar className="w-6 h-6 text-primary-foreground" />
               </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                Job Application Tracker ✨
+              <h1 className="text-2xl font-bold text-foreground">
+                Job Application Tracker
               </h1>
             </div>
             <div className="flex items-center gap-2">
@@ -324,7 +324,7 @@ export default function App() {
                 variant="outline"
                 size="sm"
                 onClick={() => setActiveTab("home")}
-                className="gap-2 border-2 border-pink-300 text-pink-600 hover:bg-pink-50 hover:text-pink-700 shadow-sm"
+                className="gap-2"
               >
                 <Home className="w-4 h-4" />
                 Home
@@ -333,7 +333,7 @@ export default function App() {
                 variant="outline"
                 size="sm"
                 onClick={handleLogout}
-                className="gap-2 border-2 border-pink-300 text-pink-600 hover:bg-pink-50 hover:text-pink-700 shadow-sm"
+                className="gap-2"
               >
                 <LogOut className="w-4 h-4" />
                 Logout
@@ -346,16 +346,16 @@ export default function App() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 bg-white/80 backdrop-blur-sm border-2 border-pink-200 shadow-lg">
-            <TabsTrigger value="home" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-400 data-[state=active]:to-pink-600 data-[state=active]:text-white">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3">
+            <TabsTrigger value="home">
               <Home className="w-4 h-4 mr-2" />
               Home
             </TabsTrigger>
-            <TabsTrigger value="calendar" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-400 data-[state=active]:to-pink-600 data-[state=active]:text-white">
+            <TabsTrigger value="calendar">
               <Calendar className="w-4 h-4 mr-2" />
               Calendar
             </TabsTrigger>
-            <TabsTrigger value="profile" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-400 data-[state=active]:to-pink-600 data-[state=active]:text-white">
+            <TabsTrigger value="profile">
               <User className="w-4 h-4 mr-2" />
               Profile
             </TabsTrigger>
@@ -401,32 +401,32 @@ export default function App() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card className="shadow-lg border-2 border-pink-200 bg-gradient-to-br from-pink-50 to-white hover:shadow-xl transition-shadow">
+              <Card>
                 <CardHeader className="pb-3">
-                  <CardDescription className="text-pink-600">Total Applications</CardDescription>
-                  <CardTitle className="text-3xl text-pink-700">{applications.length}</CardTitle>
+                  <CardDescription>Total Applications</CardDescription>
+                  <CardTitle className="text-3xl">{applications.length}</CardTitle>
                 </CardHeader>
               </Card>
-              <Card className="shadow-lg border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white hover:shadow-xl transition-shadow">
+              <Card>
                 <CardHeader className="pb-3">
-                  <CardDescription className="text-blue-600">Applied</CardDescription>
-                  <CardTitle className="text-3xl text-blue-600">
+                  <CardDescription>Applied</CardDescription>
+                  <CardTitle className="text-3xl">
                     {getStatusCount("applied")}
                   </CardTitle>
                 </CardHeader>
               </Card>
-              <Card className="shadow-lg border-2 border-yellow-200 bg-gradient-to-br from-yellow-50 to-white hover:shadow-xl transition-shadow">
+              <Card>
                 <CardHeader className="pb-3">
-                  <CardDescription className="text-yellow-600">Interviews</CardDescription>
-                  <CardTitle className="text-3xl text-yellow-600">
+                  <CardDescription>Interviews</CardDescription>
+                  <CardTitle className="text-3xl">
                     {getStatusCount("interview")}
                   </CardTitle>
                 </CardHeader>
               </Card>
-              <Card className="shadow-lg border-2 border-green-200 bg-gradient-to-br from-green-50 to-white hover:shadow-xl transition-shadow">
+              <Card>
                 <CardHeader className="pb-3">
-                  <CardDescription className="text-green-600">Offers</CardDescription>
-                  <CardTitle className="text-3xl text-green-600">
+                  <CardDescription>Offers</CardDescription>
+                  <CardTitle className="text-3xl">
                     {getStatusCount("offer")}
                   </CardTitle>
                 </CardHeader>
@@ -435,11 +435,11 @@ export default function App() {
 
             {/* Applications List */}
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-pink-700">My Applications 💼</h2>
+              <h2 className="text-xl font-semibold">My Applications</h2>
               <Button onClick={() => {
                 setEditingApplication(null);
                 setShowAddDialog(true);
-              }} className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white shadow-lg">
+              }}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add Application
               </Button>
@@ -457,10 +457,10 @@ export default function App() {
             </div>
 
             {applications.length === 0 && (
-              <Card className="p-12 shadow-lg border-2 border-pink-200 bg-gradient-to-br from-white to-pink-50">
+              <Card className="p-12">
                 <div className="text-center space-y-2">
-                  <p className="text-pink-500">No applications yet 🌸</p>
-                  <Button onClick={() => setShowAddDialog(true)} className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white">
+                  <p>No applications yet</p>
+                  <Button onClick={() => setShowAddDialog(true)}>
                     <Plus className="w-4 h-4 mr-2" />
                     Add Your First Application
                   </Button>

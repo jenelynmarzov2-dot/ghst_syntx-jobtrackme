@@ -189,18 +189,18 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
 
   return (
     <Dialog open={open}>
-      <DialogContent 
-        className="sm:max-w-md border-2 border-pink-200 bg-gradient-to-br from-white to-pink-50"
+      <DialogContent
+        className="sm:max-w-md"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle className="text-2xl text-center bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-            {isSignUp ? "Create Account ✨" : "Welcome Back 💕"}
+          <DialogTitle className="text-2xl text-center text-pink-700">
+            {isSignUp ? "Create Account" : "Welcome Back"}
           </DialogTitle>
           <DialogDescription className="text-center text-pink-600">
-            {isSignUp 
-              ? "Sign up to start tracking your job applications" 
+            {isSignUp
+              ? "Sign up to start tracking your job applications"
               : "Sign in to access your job applications"}
           </DialogDescription>
         </DialogHeader>
@@ -208,9 +208,9 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
           {isSignUp && (
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-pink-700">Full Name</Label>
+              <Label htmlFor="name">Full Name</Label>
               <div className="relative">
-                <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-pink-400" />
+                <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="name"
                   type="text"
@@ -218,16 +218,16 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required={isSignUp}
-                  className="border-2 border-pink-200 focus:border-pink-400 pl-10"
+                  className="pl-10"
                 />
               </div>
             </div>
           )}
-          
+
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-pink-700">Email Address</Label>
+            <Label htmlFor="email">Email Address</Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-pink-400" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 id="email"
                 type="email"
@@ -235,15 +235,15 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="border-2 border-pink-200 focus:border-pink-400 pl-10"
+                className="pl-10"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-pink-700">Password</Label>
+            <Label htmlFor="password">Password</Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-pink-400" />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
@@ -252,18 +252,18 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="border-2 border-pink-200 focus:border-pink-400 pl-10 pr-10"
+                className="pl-10 pr-10"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-pink-400 hover:text-pink-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground hover:text-foreground"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             {isSignUp && (
-              <p className="text-xs text-pink-500">Minimum 6 characters</p>
+              <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
             )}
           </div>
 
@@ -274,10 +274,10 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
           )}
 
           <div className="space-y-3">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white shadow-lg disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white shadow-lg"
             >
               {loading ? "Processing..." : (
                 <>
@@ -289,10 +289,10 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t-2 border-pink-200" />
+                <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-gradient-to-br from-white to-pink-50 px-2 text-pink-500">
+                <span className="bg-background px-2 text-muted-foreground">
                   Or continue with
                 </span>
               </div>
@@ -303,7 +303,7 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
                 type="button"
                 variant="outline"
                 disabled={loading}
-                className="w-full border-2 border-pink-200 text-pink-700 hover:bg-pink-50 disabled:opacity-50"
+                className="w-full border-2 border-pink-300 text-pink-600 hover:bg-pink-50 hover:text-pink-700"
                 onClick={handleGoogleSignIn}
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -327,13 +327,13 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
                 Continue with Google
               </Button>
             ) : (
-              <div className="w-full p-3 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
+              <div className="w-full p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-700 text-center">
-                  🔒 Google sign-in requires HTTPS. Please use a secure connection (HTTPS) to enable Google authentication.
+                  Google sign-in requires HTTPS. Please use a secure connection (HTTPS) to enable Google authentication.
                 </p>
               </div>
             )}
-            <p className="text-xs text-pink-500 text-center">
+            <p className="text-xs text-muted-foreground text-center">
               Note: Google sign-in requires HTTPS and additional setup in Supabase dashboard
             </p>
           </div>
@@ -345,11 +345,11 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
                 setIsSignUp(!isSignUp);
                 setError("");
               }}
-              className="text-pink-600 hover:text-pink-700 underline"
+              className="text-primary hover:text-primary/80 underline"
               disabled={loading}
             >
-              {isSignUp 
-                ? "Already have an account? Sign in" 
+              {isSignUp
+                ? "Already have an account? Sign in"
                 : "Don't have an account? Sign up"}
             </button>
           </div>
