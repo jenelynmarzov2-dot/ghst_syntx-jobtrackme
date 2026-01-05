@@ -39,10 +39,10 @@
   --sidebar-ring: #ec4899;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
+.pink-theme {
+  --background: oklch(61.114% 0.25339 336.517);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
+  --card: oklch(54.489% 0.19118 355.284);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
