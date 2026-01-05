@@ -195,10 +195,10 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle className="text-2xl text-center">
+          <DialogTitle className="text-2xl text-center text-pink-700">
             {isSignUp ? "Create Account" : "Welcome Back"}
           </DialogTitle>
-          <DialogDescription className="text-center">
+          <DialogDescription className="text-center text-pink-600">
             {isSignUp
               ? "Sign up to start tracking your job applications"
               : "Sign in to access your job applications"}
@@ -277,7 +277,7 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full"
+              className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white shadow-lg"
             >
               {loading ? "Processing..." : (
                 <>
@@ -303,7 +303,7 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
                 type="button"
                 variant="outline"
                 disabled={loading}
-                className="w-full"
+                className="w-full border-2 border-pink-300 text-pink-600 hover:bg-pink-50 hover:text-pink-700"
                 onClick={handleGoogleSignIn}
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
