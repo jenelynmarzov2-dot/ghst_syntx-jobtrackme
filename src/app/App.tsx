@@ -70,17 +70,8 @@ export default function App() {
         const { data } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (event === 'SIGNED_IN' && session) {
-              // Only auto-login if this is a fresh OAuth sign-in (not from existing session)
-              // Check if this is a new sign-in by looking for OAuth parameters or if user just signed in
-              const hasOAuthParams = window.location.hash.includes('access_token') ||
-                                    window.location.search.includes('code') ||
-                                    window.location.hash.includes('#') ||
-                                    window.location.search.includes('?');
-              const isNewSignIn = !currentUser && session.user;
-
-              if ((hasOAuthParams || isNewSignIn) && !currentUser) {
-                handleLogin(session.user.email || '', session.access_token);
-              }
+              // Auto-login disabled - users must manually sign in
+              // OAuth redirects are handled but no automatic login occurs
             } else if (event === 'SIGNED_OUT') {
               handleLogout();
             }
