@@ -23,6 +23,7 @@ export default function App() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [editingApplication, setEditingApplication] = useState<JobApplication | null>(null);
+  const [isNewUser, setIsNewUser] = useState<boolean>(true);
 
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
     name: " ",
@@ -103,6 +104,21 @@ export default function App() {
     setAccessToken(token);
     localStorage.setItem("currentUser", email);
     localStorage.setItem("accessToken", token);
+
+    // Check if this is the user's first login
+    const firstLoginKey = `firstLogin_${email}`;
+    const firstLoginDate = localStorage.getItem(firstLoginKey);
+
+    if (!firstLoginDate) {
+      // First time login - set today's date and mark as new user
+      const today = new Date().toDateString();
+      localStorage.setItem(firstLoginKey, today);
+      setIsNewUser(true);
+    } else {
+      // Returning user - they've logged in before
+      setIsNewUser(false);
+    }
+
     loadUserData(email);
   };
 
@@ -439,7 +455,7 @@ export default function App() {
             <div className="space-y-6">
               {/* Welcome Section */}
               <div className="text-center py-8 animate-fade-in">
-                <h1 className="text-4xl font-bold text-gray-800 mb-2 animate-slide-up">Welcome back, {personalInfo.name.split(" ")[0]}! 👋</h1>
+                <h1 className="text-4xl font-bold text-gray-800 mb-2 animate-slide-up">{isNewUser ? "Welcome" : "Welcome back"}, {personalInfo.name.split(" ")[0]}! 👋</h1>
                 <p className="text-lg text-gray-600 animate-slide-up animation-delay-200">Let's track your job applications and land your dream job!</p>
                 <div className="mt-4 flex justify-center space-x-4 animate-slide-up animation-delay-400">
                   <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-pulse-slow">
