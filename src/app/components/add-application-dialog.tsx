@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -41,6 +41,28 @@ export function AddApplicationDialog({
     notes: editingApplication?.notes || "",
   });
 
+  useEffect(() => {
+    if (editingApplication) {
+      setFormData({
+        company: editingApplication.company,
+        position: editingApplication.position,
+        status: editingApplication.status,
+        location: editingApplication.location,
+        appliedDate: editingApplication.appliedDate,
+        notes: editingApplication.notes || "",
+      });
+    } else {
+      setFormData({
+        company: "",
+        position: "",
+        status: "applied",
+        location: "",
+        appliedDate: new Date().toISOString().split("T")[0],
+        notes: "",
+      });
+    }
+  }, [editingApplication]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
@@ -59,47 +81,76 @@ export function AddApplicationDialog({
       <DialogContent className="sm:max-w-[425px] border-2 border-blue-200 bg-gradient-to-br from-white to-blue-50">
         <DialogHeader>
           <DialogTitle className="text-blue-700">
-            {editingApplication ? "Edit Application ✏️" : "Add New Application ✨"}
+            {editingApplication ? "Update Status ✏️" : "Add New Application ✨"}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="company" className="text-blue-700">Company Name</Label>
-              <Input
-                id="company"
-                value={formData.company}
-                onChange={(e) =>
-                  setFormData({ ...formData, company: e.target.value })
-                }
-                className="border-2 border-blue-200 focus:border-blue-400"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="position" className="text-blue-700">Position</Label>
-              <Input
-                id="position"
-                value={formData.position}
-                onChange={(e) =>
-                  setFormData({ ...formData, position: e.target.value })
-                }
-                className="border-2 border-blue-200 focus:border-blue-400"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="location" className="text-blue-700">Location</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) =>
-                  setFormData({ ...formData, location: e.target.value })
-                }
-                className="border-2 border-blue-200 focus:border-blue-400"
-                required
-              />
-            </div>
+            {!editingApplication && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="company" className="text-blue-700">Company Name</Label>
+                  <Input
+                    id="company"
+                    value={formData.company}
+                    onChange={(e) =>
+                      setFormData({ ...formData, company: e.target.value })
+                    }
+                    className="border-2 border-blue-200 focus:border-blue-400"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="position" className="text-blue-700">Position</Label>
+                  <Input
+                    id="position"
+                    value={formData.position}
+                    onChange={(e) =>
+                      setFormData({ ...formData, position: e.target.value })
+                    }
+                    className="border-2 border-blue-200 focus:border-blue-400"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="location" className="text-blue-700">Location</Label>
+                  <Input
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) =>
+                      setFormData({ ...formData, location: e.target.value })
+                    }
+                    className="border-2 border-blue-200 focus:border-blue-400"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="appliedDate" className="text-blue-700">Applied Date</Label>
+                  <Input
+                    id="appliedDate"
+                    type="date"
+                    value={formData.appliedDate}
+                    onChange={(e) =>
+                      setFormData({ ...formData, appliedDate: e.target.value })
+                    }
+                    className="border-2 border-blue-200 focus:border-blue-400"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="notes" className="text-blue-700">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) =>
+                      setFormData({ ...formData, notes: e.target.value })
+                    }
+                    className="border-2 border-blue-200 focus:border-blue-400"
+                    rows={3}
+                  />
+                </div>
+              </>
+            )}
             <div className="space-y-2">
               <Label htmlFor="status" className="text-blue-700">Status</Label>
               <Select
@@ -121,31 +172,6 @@ export function AddApplicationDialog({
                   <SelectItem value="rejected">Rejected</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="appliedDate" className="text-blue-700">Applied Date</Label>
-              <Input
-                id="appliedDate"
-                type="date"
-                value={formData.appliedDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, appliedDate: e.target.value })
-                }
-                className="border-2 border-blue-200 focus:border-blue-400"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="notes" className="text-blue-700">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
-                className="border-2 border-blue-200 focus:border-blue-400"
-                rows={3}
-              />
             </div>
           </div>
           <DialogFooter>

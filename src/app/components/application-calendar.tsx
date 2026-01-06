@@ -12,6 +12,13 @@ import {
 } from "./ui/table";
 import { JobApplication } from "./job-application-card";
 
+const statusColors = {
+  applied: "bg-blue-100 text-blue-700 border border-blue-200",
+  interview: "bg-yellow-100 text-yellow-700 border border-yellow-200",
+  offer: "bg-green-100 text-green-700 border border-green-200",
+  rejected: "bg-red-100 text-red-700 border border-red-200",
+};
+
 interface ApplicationCalendarProps {
   applications: JobApplication[];
 }
@@ -82,7 +89,7 @@ export function ApplicationCalendar({ applications }: ApplicationCalendarProps) 
                           <td className="border border-blue-200 px-4 py-2 text-blue-600">{app.company}</td>
                           <td className="border border-blue-200 px-4 py-2 text-blue-600">{app.location}</td>
                           <td className="border border-blue-200 px-4 py-2">
-                            <Badge className="bg-blue-200 text-blue-800 border-blue-300">
+                            <Badge className={statusColors[app.status]}>
                               {app.status}
                             </Badge>
                           </td>
