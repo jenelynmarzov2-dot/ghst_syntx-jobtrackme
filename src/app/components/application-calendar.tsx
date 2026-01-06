@@ -2,6 +2,14 @@ import { useState } from "react";
 import { Calendar } from "./ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table";
 import { JobApplication } from "./job-application-card";
 
 interface ApplicationCalendarProps {
@@ -55,27 +63,33 @@ export function ApplicationCalendar({ applications }: ApplicationCalendarProps) 
                 Applications on {selectedDate?.toLocaleDateString() || "Select a date"}
               </h3>
               {selectedDateApplications.length > 0 ? (
-                <div className="space-y-2">
-                  {selectedDateApplications.map((app) => (
-                    <div
-                      key={app.id}
-                      className="p-4 border-2 border-blue-100 rounded-lg hover:bg-blue-50 transition-colors shadow-sm"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-medium text-blue-800">{app.position}</p>
-                          <p className="text-sm text-blue-600">{app.company}</p>
-                        </div>
-                        <Badge className="bg-blue-200 text-blue-800 border-blue-300">
-                          {app.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-blue-700">Position</TableHead>
+                      <TableHead className="text-blue-700">Company</TableHead>
+                      <TableHead className="text-blue-700">Location</TableHead>
+                      <TableHead className="text-blue-700">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedDateApplications.map((app) => (
+                      <TableRow key={app.id}>
+                        <TableCell className="font-medium text-blue-800">{app.position}</TableCell>
+                        <TableCell className="text-blue-600">{app.company}</TableCell>
+                        <TableCell className="text-blue-600">{app.location}</TableCell>
+                        <TableCell>
+                          <Badge className="bg-blue-200 text-blue-800 border-blue-300">
+                            {app.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               ) : (
                 <p className="text-blue-400 text-sm">
-                  No applications on this date
+                  No applications
                 </p>
               )}
             </div>
