@@ -24,6 +24,8 @@ export default function App() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [editingApplication, setEditingApplication] = useState<JobApplication | null>(null);
   const [isNewUser, setIsNewUser] = useState<boolean>(true);
+  const [accountDeleted, setAccountDeleted] = useState<boolean>(false);
+  const [showGoogleWarning, setShowGoogleWarning] = useState<boolean>(false);
 
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
     name: " ",
@@ -39,14 +41,23 @@ export default function App() {
   // Note: Removed localStorage clearing on startup to allow OAuth redirects to work properly
   // User data is kept for returning users who log in again
 
-  const loadUserData = (userEmail: string) => {
+  const loadUserData = (userEmail: string, user?: any) => {
     try {
       const userDataKey = `userData_${userEmail}`;
       const savedData = localStorage.getItem(userDataKey);
 
+      // Get the user's name from OAuth provider or fallback to email split
+      const userName = user?.user_metadata?.full_name ||
+                      user?.user_metadata?.name ||
+                      userEmail.split("@")[0] || "User";
+
       if (savedData) {
         try {
           const userData: UserData = JSON.parse(savedData);
+          // Update name if it's still the default email split
+          if (userData.personalInfo.name === userEmail.split("@")[0] || userData.personalInfo.name === "User") {
+            userData.personalInfo.name = userName;
+          }
           setPersonalInfo(userData.personalInfo);
           setApplications(userData.applications);
         } catch (parseError) {
@@ -54,37 +65,40 @@ export default function App() {
           // Clear corrupted data and set defaults
           localStorage.removeItem(userDataKey);
           setPersonalInfo({
-            name: userEmail.split("@")[0] || "User",
+            name: userName,
             email: userEmail,
             phone: "",
             location: "",
             title: "Job Seeker",
-            imageUrl: "",
+            imageUrl: user?.user_metadata?.avatar_url || "",
           });
           setApplications([]);
         }
       } else {
         // New user - set default empty state
         setPersonalInfo({
-          name: userEmail.split("@")[0] || "User",
+          name: userName,
           email: userEmail,
           phone: "",
           location: "",
           title: "Job Seeker",
-          imageUrl: "",
+          imageUrl: user?.user_metadata?.avatar_url || "",
         });
         setApplications([]);
       }
     } catch (error) {
       console.error('Error loading user data:', error);
       // Set defaults if localStorage access fails
+      const userName = user?.user_metadata?.full_name ||
+                      user?.user_metadata?.name ||
+                      userEmail.split("@")[0] || "User";
       setPersonalInfo({
-        name: userEmail.split("@")[0] || "User",
+        name: userName,
         email: userEmail,
         phone: "",
         location: "",
         title: "Job Seeker",
-        imageUrl: "",
+        imageUrl: user?.user_metadata?.avatar_url || "",
       });
       setApplications([]);
     }
@@ -99,13 +113,17 @@ export default function App() {
     localStorage.setItem(userDataKey, JSON.stringify(userData));
   };
 
-  const handleLogin = (email: string, token: string) => {
+  const handleLogin = (email: string, token: string, user?: any) => {
     setCurrentUser(email);
     setAccessToken(token);
     localStorage.setItem("currentUser", email);
     localStorage.setItem("accessToken", token);
 
-    // Check if this is the user's first login
+    // Mark that this user has signed up through the app (email/password signup)
+    const signedUpWithEmailKey = `signedUpWithEmail_${email}`;
+    localStorage.setItem(signedUpWithEmailKey, 'true');
+
+    // Check if this is the user's first login (only for users who signed up with email/password)
     const firstLoginKey = `firstLogin_${email}`;
     const firstLoginDate = localStorage.getItem(firstLoginKey);
 
@@ -119,14 +137,10 @@ export default function App() {
       setIsNewUser(false);
     }
 
-    loadUserData(email);
+    loadUserData(email, user);
   };
 
-  // Test toast on mount
-  useEffect(() => {
-    console.log('App mounted, testing toast');
-    toast.success("App loaded successfully!");
-  }, []);
+
 
   // Separate effect for auth state changes
   useEffect(() => {
@@ -145,8 +159,43 @@ export default function App() {
         // Check for existing session on app load
         const { data: sessionData } = await supabase.auth.getSession();
         if (sessionData.session && sessionData.session.user && !currentUser) {
-          console.log('Existing session found, logging in user:', sessionData.session.user.email);
-          handleLogin(sessionData.session.user.email || '', sessionData.session.access_token);
+          try {
+            const { data: userData } = await supabase.auth.getUser();
+            if (userData.user) {
+              // Check if this user has signed up through the app (has signed up with email/password)
+              const userEmail = sessionData.session.user.email || '';
+              const signedUpWithEmailKey = `signedUpWithEmail_${userEmail}`;
+              const hasSignedUpWithEmail = localStorage.getItem(signedUpWithEmailKey) === 'true';
+
+              // If user hasn't signed up with email/password first, block access
+              if (!hasSignedUpWithEmail) {
+                console.log('Existing session found for user who hasn\'t signed up with email/password, signing out');
+                await supabase.auth.signOut();
+                localStorage.removeItem("currentUser");
+                localStorage.removeItem("accessToken");
+                setCurrentUser(null);
+                setAccessToken(null);
+                return;
+              }
+
+              console.log('Existing session found, logging in user:', sessionData.session.user.email);
+              handleLogin(sessionData.session.user.email || '', sessionData.session.access_token, sessionData.session.user);
+            } else {
+              // User deleted, clear localStorage and sign out
+              console.log('User not found in Supabase, clearing data and signing out');
+              await supabase.auth.signOut();
+              localStorage.removeItem("currentUser");
+              localStorage.removeItem("accessToken");
+              setCurrentUser(null);
+              setAccessToken(null);
+            }
+          } catch (error) {
+            console.log('Error getting user, clearing data:', error);
+            localStorage.removeItem("currentUser");
+            localStorage.removeItem("accessToken");
+            setCurrentUser(null);
+            setAccessToken(null);
+          }
         }
 
         // Handle OAuth redirects (like Google sign-in)
@@ -166,10 +215,50 @@ export default function App() {
               if (event === 'SIGNED_IN' && session && session.user) {
                 console.log('User signed in:', session.user.email);
 
+                // Check if user still exists in Supabase
+                try {
+                  const { data: userData } = await supabase.auth.getUser();
+                  if (!userData.user) {
+                    console.log('User not found in Supabase, clearing data');
+                    localStorage.removeItem("currentUser");
+                    localStorage.removeItem("accessToken");
+                    setCurrentUser(null);
+                    setAccessToken(null);
+                    return;
+                  }
+                } catch (error) {
+                  console.log('Error checking user existence, clearing data:', error);
+                  localStorage.removeItem("currentUser");
+                  localStorage.removeItem("accessToken");
+                  setCurrentUser(null);
+                  setAccessToken(null);
+                  return;
+                }
+
+                // Check if this user has signed up through the app (has signed up with email/password)
+                const userEmail = session.user.email || '';
+                const signedUpWithEmailKey = `signedUpWithEmail_${userEmail}`;
+                const hasSignedUpWithEmail = localStorage.getItem(signedUpWithEmailKey) === 'true';
+
+                // If user hasn't signed up with email/password first, block access and show warning
+                if (!hasSignedUpWithEmail) {
+                  console.log('Google sign-in attempted by user who hasn\'t signed up with email/password, showing warning');
+                  setShowGoogleWarning(true);
+                  await supabase.auth.signOut();
+                  localStorage.removeItem("currentUser");
+                  localStorage.removeItem("accessToken");
+                  setCurrentUser(null);
+                  setAccessToken(null);
+                  return;
+                }
+
+                // Allow Google sign-in for users who have signed up with email/password
+                console.log('Google sign-in successful for user:', session.user.email);
+
                 // Prevent duplicate logins
                 if (!currentUser) {
                   console.log('Logging in user:', session.user.email);
-                  handleLogin(session.user.email || '', session.access_token);
+                  handleLogin(session.user.email || '', session.access_token, session.user);
                   toast.success("Welcome back!");
 
                   // Clean up URL parameters after a longer delay to ensure login completes
@@ -193,6 +282,45 @@ export default function App() {
                 }
               } else if (event === 'TOKEN_REFRESHED') {
                 console.log('Token refreshed successfully');
+                // Check if user still exists after token refresh
+                try {
+                  const { data: userData } = await supabase.auth.getUser();
+                  if (!userData.user) {
+                    console.log('User not found after token refresh, clearing data');
+                    localStorage.removeItem("currentUser");
+                    localStorage.removeItem("accessToken");
+                    setCurrentUser(null);
+                    setAccessToken(null);
+                    setApplications([]);
+                    setPersonalInfo({
+                      name: "",
+                      email: "",
+                      phone: "",
+                      location: "",
+                      title: "",
+                      imageUrl: "",
+                    });
+                    setActiveTab("home");
+                    toast.error("Your account has been deleted. All data has been cleared.");
+                  }
+                } catch (error) {
+                  console.log('Error checking user after token refresh, clearing data:', error);
+                  localStorage.removeItem("currentUser");
+                  localStorage.removeItem("accessToken");
+                  setCurrentUser(null);
+                  setAccessToken(null);
+                  setApplications([]);
+                  setPersonalInfo({
+                    name: "",
+                    email: "",
+                    phone: "",
+                    location: "",
+                    title: "",
+                    imageUrl: "",
+                  });
+                  setActiveTab("home");
+                  toast.error("Your account has been deleted. All data has been cleared.");
+                }
               }
             } catch (error) {
               console.error('Error in auth state change handler:', error);
@@ -234,6 +362,91 @@ export default function App() {
     }
   }, [personalInfo, applications, currentUser]);
 
+  // Check if user still exists in Supabase periodically and on window focus
+  useEffect(() => {
+    if (currentUser && !accountDeleted) {
+      const checkUserExists = async () => {
+        try {
+          const { createClient } = await import('@supabase/supabase-js');
+          const supabase = createClient(
+            `https://${projectId}.supabase.co`,
+            publicAnonKey
+          );
+          await supabase.auth.refreshSession();
+          const { data } = await supabase.auth.getUser();
+          if (!data.user) {
+            console.log('User deleted from database, clearing local data');
+            setAccountDeleted(true);
+            localStorage.removeItem("currentUser");
+            localStorage.removeItem("accessToken");
+            const userDataKey = `userData_${currentUser}`;
+            localStorage.removeItem(userDataKey);
+            const firstLoginKey = `firstLogin_${currentUser}`;
+            localStorage.removeItem(firstLoginKey);
+            setCurrentUser(null);
+            setAccessToken(null);
+            setApplications([]);
+            setPersonalInfo({
+              name: "",
+              email: "",
+              phone: "",
+              location: "",
+              title: "",
+              imageUrl: "",
+            });
+            setActiveTab("home");
+            toast.error("Your account has been deleted. All data has been cleared.");
+          }
+        } catch (error) {
+          console.log('Error checking user existence:', error);
+          // If there's an error checking user (e.g., user deleted), clear data
+          setAccountDeleted(true);
+          localStorage.removeItem("currentUser");
+          localStorage.removeItem("accessToken");
+          const userDataKey = `userData_${currentUser}`;
+          localStorage.removeItem(userDataKey);
+          const firstLoginKey = `firstLogin_${currentUser}`;
+          localStorage.removeItem(firstLoginKey);
+          setCurrentUser(null);
+          setAccessToken(null);
+          setApplications([]);
+          setPersonalInfo({
+            name: "",
+            email: "",
+            phone: "",
+            location: "",
+            title: "",
+            imageUrl: "",
+          });
+          setActiveTab("home");
+          toast.error("Your account has been deleted. All data has been cleared.");
+        }
+      };
+
+      // Check immediately
+      checkUserExists();
+
+      // Check every 30 seconds
+      const interval = setInterval(checkUserExists, 30000);
+
+      // Check when window gains focus
+      const handleFocus = () => checkUserExists();
+      window.addEventListener('focus', handleFocus);
+
+      // Check when page becomes visible
+      const handleVisibilityChange = () => {
+        if (!document.hidden) checkUserExists();
+      };
+      window.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener('focus', handleFocus);
+        window.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
+    }
+  }, [currentUser]);
+
   const sendEmailNotification = async (type: 'added' | 'updated' | 'deleted', application: JobApplication) => {
     if (!accessToken) return;
 
@@ -273,13 +486,20 @@ export default function App() {
     setAccessToken(null);
     localStorage.removeItem("currentUser");
     localStorage.removeItem("accessToken");
+
+    // Clear user-specific data from localStorage
+    const userDataKey = `userData_${currentUser}`;
+    localStorage.removeItem(userDataKey);
+    const firstLoginKey = `firstLogin_${currentUser}`;
+    localStorage.removeItem(firstLoginKey);
+
     setApplications([]);
     setPersonalInfo({
-      name: "John Doe",
-      email: "john.doe@email.com",
-      phone: "+1 (555) 123-4567",
-      location: "San Francisco, CA",
-      title: "Software Engineer",
+      name: "",
+      email: "",
+      phone: "",
+      location: "",
+      title: "",
       imageUrl: "",
     });
     setActiveTab("home");
@@ -356,8 +576,34 @@ export default function App() {
         <div className="absolute bottom-40 right-10 w-28 h-28 bg-orange-400 rounded-full blur-xl"></div>
       </div>
 
-      {/* Show login dialog if not logged in */}
-      {(!currentUser) && (
+      {/* Show Google warning if Google sign-in was blocked */}
+      {showGoogleWarning && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4 text-center">
+            <div className="mb-6">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">⚠️</span>
+              </div>
+              <h2 className="text-xl font-bold text-gray-800 mb-2">Sign Up Required</h2>
+              <p className="text-gray-600">
+                Please sign up first using email and password before using Google sign-in.
+              </p>
+            </div>
+            <Button
+              onClick={() => {
+                console.log('OK button clicked, hiding warning');
+                setShowGoogleWarning(false);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              OK
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Show login dialog if not logged in and not showing Google warning */}
+      {(!currentUser && !showGoogleWarning) && (
         <LoginDialog key={`login-dialog-${Date.now()}`} open={true} onLogin={handleLogin} />
       )}
 
@@ -455,7 +701,7 @@ export default function App() {
             <div className="space-y-6">
               {/* Welcome Section */}
               <div className="text-center py-8 animate-fade-in">
-                <h1 className="text-4xl font-bold text-gray-800 mb-2 animate-slide-up">{isNewUser ? "Welcome" : "Welcome back"}, {personalInfo.name.split(" ")[0]}! 👋</h1>
+                <h1 className="text-4xl font-bold text-gray-800 mb-2 animate-slide-up">Hello, {personalInfo.name.split(' ')[0] || 'User'}</h1>
                 <p className="text-lg text-gray-600 animate-slide-up animation-delay-200">Let's track your job applications and land your dream job!</p>
                 <div className="mt-4 flex justify-center space-x-4 animate-slide-up animation-delay-400">
                   <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-pulse-slow">
