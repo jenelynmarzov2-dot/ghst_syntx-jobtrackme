@@ -52,6 +52,12 @@ export default function App() {
                       user?.user_metadata?.name ||
                       userEmail.split("@")[0] || "User";
 
+      // Get the user's avatar URL from OAuth provider - try multiple possible fields
+      const userImageUrl = user?.user_metadata?.avatar_url ||
+                          user?.user_metadata?.picture ||
+                          user?.user_metadata?.photoURL ||
+                          "";
+
       if (savedData) {
         try {
           const userData: UserData = JSON.parse(savedData);
@@ -71,7 +77,7 @@ export default function App() {
             phone: "",
             location: "",
             title: "Job Seeker",
-            imageUrl: user?.user_metadata?.avatar_url || "",
+            imageUrl: userImageUrl,
           });
           setApplications([]);
         }
@@ -83,7 +89,7 @@ export default function App() {
           phone: "",
           location: "",
           title: "Job Seeker",
-          imageUrl: user?.user_metadata?.avatar_url || "",
+          imageUrl: userImageUrl,
         });
         setApplications([]);
       }
@@ -93,13 +99,18 @@ export default function App() {
       const userName = user?.user_metadata?.full_name ||
                       user?.user_metadata?.name ||
                       userEmail.split("@")[0] || "User";
+      // Get the user's avatar URL from OAuth provider - try multiple possible fields
+      const userImageUrl = user?.user_metadata?.avatar_url ||
+                          user?.user_metadata?.picture ||
+                          user?.user_metadata?.photoURL ||
+                          "";
       setPersonalInfo({
         name: userName,
         email: userEmail,
         phone: "",
         location: "",
         title: "Job Seeker",
-        imageUrl: user?.user_metadata?.avatar_url || "",
+        imageUrl: userImageUrl,
       });
       setApplications([]);
     }
@@ -689,7 +700,14 @@ export default function App() {
                     <div className="flex items-center gap-4">
                       <div className="relative">
                         <Avatar className="w-16 h-16 border-4 border-blue-800 shadow-lg">
-                          <AvatarImage src={personalInfo.imageUrl} />
+                          <AvatarImage
+                            src={personalInfo.imageUrl}
+                            onError={(e) => {
+                              console.log('Avatar image failed to load:', personalInfo.imageUrl);
+                              // Hide the broken image
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
                           <AvatarFallback className="bg-blue-800 text-white">
                             {personalInfo.name
                               .split(" ")
@@ -812,7 +830,14 @@ export default function App() {
                   <div className="flex flex-col items-center gap-4">
                     <div className="relative">
                       <Avatar className="w-32 h-32 border-4 border-blue-800 shadow-lg">
-                        <AvatarImage src={personalInfo.imageUrl} />
+                        <AvatarImage
+                          src={personalInfo.imageUrl}
+                          onError={(e) => {
+                            console.log('Profile avatar image failed to load:', personalInfo.imageUrl);
+                            // Hide the broken image
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
                         <AvatarFallback className="text-2xl bg-blue-800 text-white">
                           {personalInfo.name
                             .split(" ")
