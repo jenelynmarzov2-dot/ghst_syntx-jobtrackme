@@ -7,6 +7,7 @@ import { AddApplicationDialog } from "./components/add-application-dialog";
 import { ProfileDialog, PersonalInfo } from "./components/profile-dialog";
 import { ApplicationCalendar } from "./components/application-calendar";
 import { LoginDialog } from "./components/login-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./components/ui/dialog";
 import { Plus, Home, User, Calendar, LogOut } from "lucide-react";
 import { projectId, publicAnonKey } from "../../utils/supabase/info";
 import { Toaster, toast } from "sonner";
@@ -162,22 +163,6 @@ export default function App() {
           try {
             const { data: userData } = await supabase.auth.getUser();
             if (userData.user) {
-              // Check if this user has signed up through the app (has signed up with email/password)
-              const userEmail = sessionData.session.user.email || '';
-              const signedUpWithEmailKey = `signedUpWithEmail_${userEmail}`;
-              const hasSignedUpWithEmail = localStorage.getItem(signedUpWithEmailKey) === 'true';
-
-              // If user hasn't signed up with email/password first, block access
-              if (!hasSignedUpWithEmail) {
-                console.log('Existing session found for user who hasn\'t signed up with email/password, signing out');
-                await supabase.auth.signOut();
-                localStorage.removeItem("currentUser");
-                localStorage.removeItem("accessToken");
-                setCurrentUser(null);
-                setAccessToken(null);
-                return;
-              }
-
               console.log('Existing session found, logging in user:', sessionData.session.user.email);
               handleLogin(sessionData.session.user.email || '', sessionData.session.access_token, sessionData.session.user);
             } else {
@@ -212,115 +197,121 @@ export default function App() {
             try {
               console.log('Auth state change:', event, 'Session exists:', !!session);
 
-              if (event === 'SIGNED_IN' && session && session.user) {
-                console.log('User signed in:', session.user.email);
+              switch (event) {
+                case 'SIGNED_IN':
+                  if (session && session.user) {
+                    console.log('User signed in:', session.user.email);
 
-                // Check if user still exists in Supabase
-                try {
-                  const { data: userData } = await supabase.auth.getUser();
-                  if (!userData.user) {
-                    console.log('User not found in Supabase, clearing data');
-                    localStorage.removeItem("currentUser");
-                    localStorage.removeItem("accessToken");
-                    setCurrentUser(null);
-                    setAccessToken(null);
-                    return;
-                  }
-                } catch (error) {
-                  console.log('Error checking user existence, clearing data:', error);
-                  localStorage.removeItem("currentUser");
-                  localStorage.removeItem("accessToken");
-                  setCurrentUser(null);
-                  setAccessToken(null);
-                  return;
-                }
-
-                // Check if this user has signed up through the app (has signed up with email/password)
-                const userEmail = session.user.email || '';
-                const signedUpWithEmailKey = `signedUpWithEmail_${userEmail}`;
-                const hasSignedUpWithEmail = localStorage.getItem(signedUpWithEmailKey) === 'true';
-
-                // If user hasn't signed up with email/password first, block access and show warning
-                if (!hasSignedUpWithEmail) {
-                  console.log('Google sign-in attempted by user who hasn\'t signed up with email/password, showing warning');
-                  setShowGoogleWarning(true);
-                  await supabase.auth.signOut();
-                  localStorage.removeItem("currentUser");
-                  localStorage.removeItem("accessToken");
-                  setCurrentUser(null);
-                  setAccessToken(null);
-                  return;
-                }
-
-                // Allow Google sign-in for users who have signed up with email/password
-                console.log('Google sign-in successful for user:', session.user.email);
-
-                // Prevent duplicate logins
-                if (!currentUser) {
-                  console.log('Logging in user:', session.user.email);
-                  handleLogin(session.user.email || '', session.access_token, session.user);
-                  toast.success("Welcome back!");
-
-                  // Clean up URL parameters after a longer delay to ensure login completes
-                  setTimeout(() => {
+                    // Check if user still exists in Supabase
                     try {
-                      console.log('Cleaning up URL parameters');
-                      // Use replaceState instead of pushState to avoid navigation issues
-                      window.history.replaceState({}, document.title, window.location.pathname);
+                      const { data: userData } = await supabase.auth.getUser();
+                      if (!userData.user) {
+                        console.log('User not found in Supabase, clearing data');
+                        localStorage.removeItem("currentUser");
+                        localStorage.removeItem("accessToken");
+                        setCurrentUser(null);
+                        setAccessToken(null);
+                        return;
+                      }
                     } catch (error) {
-                      console.error('Error cleaning up URL:', error);
+                      console.log('Error checking user existence, clearing data:', error);
+                      localStorage.removeItem("currentUser");
+                      localStorage.removeItem("accessToken");
+                      setCurrentUser(null);
+                      setAccessToken(null);
+                      return;
                     }
-                  }, 2000); // Increased delay for OAuth stability
-                } else {
-                  console.log('User already logged in, skipping duplicate login');
-                }
-              } else if (event === 'SIGNED_OUT') {
-                console.log('User signed out (external event)');
-                // Only handle external sign-out events, not our own signOut() calls
-                if (currentUser) {
-                  handleLogout();
-                }
-              } else if (event === 'TOKEN_REFRESHED') {
-                console.log('Token refreshed successfully');
-                // Check if user still exists after token refresh
-                try {
-                  const { data: userData } = await supabase.auth.getUser();
-                  if (!userData.user) {
-                    console.log('User not found after token refresh, clearing data');
+
+                    // Check if this user has signed up through the app (has signed up with email/password)
+                    const userEmail = session.user.email || '';
+                    const signedUpWithEmailKey = `signedUpWithEmail_${userEmail}`;
+                    const hasSignedUpWithEmail = localStorage.getItem(signedUpWithEmailKey) === 'true';
+
+                    // If user hasn't signed up with email/password first, block access and show warning
+                    if (!hasSignedUpWithEmail) {
+                      console.log('Google sign-in attempted by user who hasn\'t signed up with email/password, showing warning');
+                      setShowGoogleWarning(true);
+                      await supabase.auth.signOut();
+                      localStorage.removeItem("currentUser");
+                      localStorage.removeItem("accessToken");
+                      setCurrentUser(null);
+                      setAccessToken(null);
+                      return;
+                    }
+
+                    // Allow Google sign-in for users who have signed up with email/password
+                    console.log('Google sign-in successful for user:', session.user.email);
+
+                    // Prevent duplicate logins
+                    if (!currentUser) {
+                      console.log('Logging in user:', session.user.email);
+                      handleLogin(session.user.email || '', session.access_token, session.user);
+                      toast.success("Welcome back!");
+
+                      // Clean up URL parameters after a longer delay to ensure login completes
+                      setTimeout(() => {
+                        try {
+                          console.log('Cleaning up URL parameters');
+                          // Use replaceState instead of pushState to avoid navigation issues
+                          window.history.replaceState({}, document.title, window.location.pathname);
+                        } catch (error) {
+                          console.error('Error cleaning up URL:', error);
+                        }
+                      }, 2000); // Increased delay for OAuth stability
+                    } else {
+                      console.log('User already logged in, skipping duplicate login');
+                    }
+                  }
+                  break;
+                case 'SIGNED_OUT':
+                  console.log('User signed out (external event)');
+                  // Only handle external sign-out events, not our own signOut() calls
+                  if (currentUser) {
+                    handleLogout();
+                  }
+                  break;
+                case 'TOKEN_REFRESHED':
+                  console.log('Token refreshed successfully');
+                  // Check if user still exists after token refresh
+                  try {
+                    const { data: userData } = await supabase.auth.getUser();
+                    if (!userData.user) {
+                      console.log('User not found after token refresh, clearing data');
+                      localStorage.removeItem("currentUser");
+                      localStorage.removeItem("accessToken");
+                      setCurrentUser(null);
+                      setAccessToken(null);
+                      setApplications([]);
+                      setPersonalInfo({
+                        name: "",
+                        email: "",
+                        phone: "",
+                        location: "",
+                        title: "",
+                        imageUrl: "",
+                      });
+                      setActiveTab("home");
+                      toast.error("Your account has been deleted. All data has been cleared.");
+                    }
+                  } catch (error) {
+                    console.log('Error checking user after token refresh, clearing data:', error);
                     localStorage.removeItem("currentUser");
                     localStorage.removeItem("accessToken");
                     setCurrentUser(null);
                     setAccessToken(null);
                     setApplications([]);
                     setPersonalInfo({
-                      name: "",
-                      email: "",
-                      phone: "",
-                      location: "",
-                      title: "",
-                      imageUrl: "",
-                    });
-                    setActiveTab("home");
-                    toast.error("Your account has been deleted. All data has been cleared.");
+                        name: "",
+                        email: "",
+                        phone: "",
+                        location: "",
+                        title: "",
+                        imageUrl: "",
+                      });
+                      setActiveTab("home");
+                      toast.error("Your account has been deleted. All data has been cleared.");
                   }
-                } catch (error) {
-                  console.log('Error checking user after token refresh, clearing data:', error);
-                  localStorage.removeItem("currentUser");
-                  localStorage.removeItem("accessToken");
-                  setCurrentUser(null);
-                  setAccessToken(null);
-                  setApplications([]);
-                  setPersonalInfo({
-                    name: "",
-                    email: "",
-                    phone: "",
-                    location: "",
-                    title: "",
-                    imageUrl: "",
-                  });
-                  setActiveTab("home");
-                  toast.error("Your account has been deleted. All data has been cleared.");
-                }
+                  break;
               }
             } catch (error) {
               console.error('Error in auth state change handler:', error);
@@ -576,34 +567,8 @@ export default function App() {
         <div className="absolute bottom-40 right-10 w-28 h-28 bg-orange-400 rounded-full blur-xl"></div>
       </div>
 
-      {/* Show Google warning if Google sign-in was blocked */}
-      {showGoogleWarning && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4 text-center">
-            <div className="mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">⚠️</span>
-              </div>
-              <h2 className="text-xl font-bold text-gray-800 mb-2">Sign Up Required</h2>
-              <p className="text-gray-600">
-                Please sign up first using email and password before using Google sign-in.
-              </p>
-            </div>
-            <Button
-              onClick={() => {
-                console.log('OK button clicked, hiding warning');
-                setShowGoogleWarning(false);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              OK
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Show login dialog if not logged in and not showing Google warning */}
-      {(!currentUser && !showGoogleWarning) && (
+      {/* Show login dialog if not logged in */}
+      {!currentUser && (
         <LoginDialog key={`login-dialog-${Date.now()}`} open={true} onLogin={handleLogin} />
       )}
 
@@ -951,6 +916,21 @@ export default function App() {
         personalInfo={personalInfo}
         onSave={handleSavePersonalInfo}
       />
+
+      {/* Google Warning Dialog */}
+      <Dialog open={showGoogleWarning} onOpenChange={setShowGoogleWarning}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign-in Restriction</DialogTitle>
+            <DialogDescription>
+              Please sign up with email and password first before using Google sign-in.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button onClick={() => setShowGoogleWarning(false)}>OK</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       </div>
       )}

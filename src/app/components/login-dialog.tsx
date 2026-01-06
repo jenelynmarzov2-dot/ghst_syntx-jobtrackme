@@ -21,7 +21,7 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showGoogleWarning, setShowGoogleWarning] = useState(false);
+
 
   // Clear form fields when dialog opens or when switching between sign-in/sign-up
   useEffect(() => {
@@ -148,32 +148,10 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
     }
   };
 
-
-
   const handleGoogleSignIn = async () => {
     console.log('handleGoogleSignIn called - START');
     setError("");
     setLoading(true);
-
-    // Check if user has signed up with email/password first
-    const keys = Object.keys(localStorage);
-    console.log('All localStorage keys:', keys);
-    const signupKeys = keys.filter(key => key.startsWith('signedUpWithEmail_'));
-    console.log('Signup keys found:', signupKeys);
-    const hasAnySignedUp = keys.some(key => key.startsWith('signedUpWithEmail_') && localStorage.getItem(key) === 'true');
-    console.log('hasAnySignedUp result:', hasAnySignedUp);
-
-    if (!hasAnySignedUp) {
-      console.log('BLOCKING: No email/password signup found');
-      const errorMsg = "You must create an account with email and password first before using Google sign-in.";
-      console.log('Setting error message:', errorMsg);
-      setError(errorMsg);
-      setLoading(false);
-      console.log('handleGoogleSignIn called - END (blocked)');
-      return;
-    }
-
-    console.log('ALLOWING: Proceeding with Google sign-in');
 
     try {
       const { createClient } = await import('@supabase/supabase-js');
@@ -413,37 +391,6 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
           </div>
         </DialogContent>
         <Toaster position="top-center" richColors />
-      </Dialog>
-
-      {/* Google Sign-in Warning Dialog */}
-      <Dialog open={showGoogleWarning} onOpenChange={setShowGoogleWarning}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-center text-xl font-semibold text-gray-800">
-              Create Account First
-            </DialogTitle>
-            <DialogDescription className="text-center text-gray-600">
-              You need to create an account with email and password before you can use Google sign-in.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-center space-x-4 mt-6">
-            <Button
-              onClick={() => {
-                setShowGoogleWarning(false);
-                setIsSignUp(true);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Create Account
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setShowGoogleWarning(false)}
-            >
-              Cancel
-            </Button>
-          </div>
-        </DialogContent>
       </Dialog>
     </>
   );
