@@ -5,6 +5,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Mail, Lock, User as UserIcon, Eye, EyeOff } from "lucide-react";
 import { projectId, publicAnonKey } from "../../../utils/supabase/info";
+import { Toaster, toast } from "sonner";
 
 interface LoginDialogProps {
   open: boolean;
@@ -101,6 +102,7 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
         if (data.user && !data.session) {
           // User created but needs email confirmation
           setError('Account created! Please check your email to confirm your account before signing in.');
+          toast.success('Account created! Please check your email to confirm your account before signing in.');
           setLoading(false);
           // Clear form fields for new user
           setName("");
@@ -112,6 +114,7 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
         if (data.session && data.user) {
           // User created and confirmed - show success message instead of auto-login
           setError('Account created successfully! You can now sign in with your credentials.');
+          toast.success('Account created successfully! You can now sign in with your credentials.');
           setLoading(false);
           // Reset form to sign-in mode and clear fields
           setIsSignUp(false);
@@ -133,6 +136,7 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
 
         if (data.session && data.user) {
           onLogin(data.user.email || email, data.session.access_token);
+          toast.success("Successfully signed in!");
         }
         setLoading(false);
       }
@@ -381,6 +385,7 @@ export function LoginDialog({ open, onLogin }: LoginDialogProps) {
         </form>
         </div>
       </DialogContent>
+      <Toaster position="top-center" richColors />
     </Dialog>
   );
 }

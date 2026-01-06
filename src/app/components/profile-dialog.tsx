@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -38,7 +38,10 @@ export function ProfileDialog({
   const [formData, setFormData] = useState<PersonalInfo>(personalInfo);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-
+  // Sync formData with personalInfo when it changes
+  useEffect(() => {
+    setFormData(personalInfo);
+  }, [personalInfo]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

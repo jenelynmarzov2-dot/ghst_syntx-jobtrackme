@@ -19,6 +19,7 @@ import {
 } from "./ui/select";
 import { JobApplication } from "./job-application-card";
 
+
 interface AddApplicationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

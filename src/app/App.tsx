@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Button } from "./components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
 import { JobApplicationCard, JobApplication } from "./components/job-application-card";
@@ -10,6 +9,7 @@ import { ApplicationCalendar } from "./components/application-calendar";
 import { LoginDialog } from "./components/login-dialog";
 import { Plus, Home, User, Calendar, LogOut } from "lucide-react";
 import { projectId, publicAnonKey } from "../../utils/supabase/info";
+import { Toaster, toast } from "sonner";
 
 interface UserData {
   personalInfo: PersonalInfo;
@@ -38,6 +38,80 @@ export default function App() {
   // Note: Removed localStorage clearing on startup to allow OAuth redirects to work properly
   // User data is kept for returning users who log in again
 
+  const loadUserData = (userEmail: string) => {
+    try {
+      const userDataKey = `userData_${userEmail}`;
+      const savedData = localStorage.getItem(userDataKey);
+
+      if (savedData) {
+        try {
+          const userData: UserData = JSON.parse(savedData);
+          setPersonalInfo(userData.personalInfo);
+          setApplications(userData.applications);
+        } catch (parseError) {
+          console.error('Error parsing user data from localStorage:', parseError);
+          // Clear corrupted data and set defaults
+          localStorage.removeItem(userDataKey);
+          setPersonalInfo({
+            name: userEmail.split("@")[0] || "User",
+            email: userEmail,
+            phone: "",
+            location: "",
+            title: "Job Seeker",
+            imageUrl: "",
+          });
+          setApplications([]);
+        }
+      } else {
+        // New user - set default empty state
+        setPersonalInfo({
+          name: userEmail.split("@")[0] || "User",
+          email: userEmail,
+          phone: "",
+          location: "",
+          title: "Job Seeker",
+          imageUrl: "",
+        });
+        setApplications([]);
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      // Set defaults if localStorage access fails
+      setPersonalInfo({
+        name: userEmail.split("@")[0] || "User",
+        email: userEmail,
+        phone: "",
+        location: "",
+        title: "Job Seeker",
+        imageUrl: "",
+      });
+      setApplications([]);
+    }
+  };
+
+  const saveUserData = (userEmail: string) => {
+    const userDataKey = `userData_${userEmail}`;
+    const userData: UserData = {
+      personalInfo,
+      applications,
+    };
+    localStorage.setItem(userDataKey, JSON.stringify(userData));
+  };
+
+  const handleLogin = (email: string, token: string) => {
+    setCurrentUser(email);
+    setAccessToken(token);
+    localStorage.setItem("currentUser", email);
+    localStorage.setItem("accessToken", token);
+    loadUserData(email);
+  };
+
+  // Test toast on mount
+  useEffect(() => {
+    console.log('App mounted, testing toast');
+    toast.success("App loaded successfully!");
+  }, []);
+
   // Separate effect for auth state changes
   useEffect(() => {
     let subscription: any = null;
@@ -51,6 +125,13 @@ export default function App() {
           `https://${projectId}.supabase.co`,
           publicAnonKey
         );
+
+        // Check for existing session on app load
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData.session && sessionData.session.user && !currentUser) {
+          console.log('Existing session found, logging in user:', sessionData.session.user.email);
+          handleLogin(sessionData.session.user.email || '', sessionData.session.access_token);
+        }
 
         // Handle OAuth redirects (like Google sign-in)
         const { data } = supabase.auth.onAuthStateChange(
@@ -73,6 +154,7 @@ export default function App() {
                 if (!currentUser) {
                   console.log('Logging in user:', session.user.email);
                   handleLogin(session.user.email || '', session.access_token);
+                  toast.success("Welcome back!");
 
                   // Clean up URL parameters after a longer delay to ensure login completes
                   setTimeout(() => {
@@ -136,66 +218,6 @@ export default function App() {
     }
   }, [personalInfo, applications, currentUser]);
 
-  const loadUserData = (userEmail: string) => {
-    try {
-      const userDataKey = `userData_${userEmail}`;
-      const savedData = localStorage.getItem(userDataKey);
-
-      if (savedData) {
-        try {
-          const userData: UserData = JSON.parse(savedData);
-          setPersonalInfo(userData.personalInfo);
-          setApplications(userData.applications);
-        } catch (parseError) {
-          console.error('Error parsing user data from localStorage:', parseError);
-          // Clear corrupted data and set defaults
-          localStorage.removeItem(userDataKey);
-          setPersonalInfo({
-            name: userEmail.split("@")[0] || "User",
-            email: userEmail,
-            phone: "",
-            location: "",
-            title: "Job Seeker",
-            imageUrl: "",
-          });
-          setApplications([]);
-        }
-      } else {
-        // New user - set default empty state
-        setPersonalInfo({
-          name: userEmail.split("@")[0] || "User",
-          email: userEmail,
-          phone: "",
-          location: "",
-          title: "Job Seeker",
-          imageUrl: "",
-        });
-        setApplications([]);
-      }
-    } catch (error) {
-      console.error('Error loading user data:', error);
-      // Set defaults if localStorage access fails
-      setPersonalInfo({
-        name: userEmail.split("@")[0] || "User",
-        email: userEmail,
-        phone: "",
-        location: "",
-        title: "Job Seeker",
-        imageUrl: "",
-      });
-      setApplications([]);
-    }
-  };
-
-  const saveUserData = (userEmail: string) => {
-    const userDataKey = `userData_${userEmail}`;
-    const userData: UserData = {
-      personalInfo,
-      applications,
-    };
-    localStorage.setItem(userDataKey, JSON.stringify(userData));
-  };
-
   const sendEmailNotification = async (type: 'added' | 'updated' | 'deleted', application: JobApplication) => {
     if (!accessToken) return;
 
@@ -213,7 +235,7 @@ export default function App() {
       );
 
       const result = await response.json();
-      
+
       if (response.ok && result.success) {
         console.log('Email notification sent successfully');
       } else {
@@ -222,14 +244,6 @@ export default function App() {
     } catch (error) {
       console.error('Failed to send email notification:', error);
     }
-  };
-
-  const handleLogin = (email: string, token: string) => {
-    setCurrentUser(email);
-    setAccessToken(token);
-    localStorage.setItem("currentUser", email);
-    localStorage.setItem("accessToken", token);
-    loadUserData(email);
   };
 
   const handleLogout = async () => {
@@ -263,12 +277,14 @@ export default function App() {
       );
       await supabase.auth.signOut();
       console.log('Successfully signed out from Supabase');
+      toast.success("Logged out successfully!");
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
 
   const handleSaveApplication = (applicationData: Omit<JobApplication, "id">) => {
+    console.log('handleSaveApplication called with:', applicationData);
     if (editingApplication) {
       const updatedApp = { ...applicationData, id: editingApplication.id };
       setApplications(
@@ -277,6 +293,8 @@ export default function App() {
         )
       );
       sendEmailNotification('updated', updatedApp);
+      console.log('Showing update toast');
+      toast.success("Application updated successfully!");
       setEditingApplication(null);
     } else {
       const newApplication: JobApplication = {
@@ -285,6 +303,8 @@ export default function App() {
       };
       setApplications([newApplication, ...applications]);
       sendEmailNotification('added', newApplication);
+      console.log('Showing add toast');
+      toast.success("Application added successfully!");
     }
     setShowAddDialog(false);
   };
@@ -310,11 +330,6 @@ export default function App() {
     return applications.filter((app) => app.status === status).length;
   };
 
-  // Show login dialog if not logged in
-  if (!currentUser) {
-    return <LoginDialog key={`login-dialog-${Date.now()}`} open={true} onLogin={handleLogin} />;
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
       {/* Background decorative elements */}
@@ -324,7 +339,16 @@ export default function App() {
         <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-purple-400 rounded-full blur-xl"></div>
         <div className="absolute bottom-40 right-10 w-28 h-28 bg-orange-400 rounded-full blur-xl"></div>
       </div>
-      {/* Header */}
+
+      {/* Show login dialog if not logged in */}
+      {(!currentUser) && (
+        <LoginDialog key={`login-dialog-${Date.now()}`} open={true} onLogin={handleLogin} />
+      )}
+
+      {/* Main app content when logged in */}
+      {currentUser && (
+        <div>
+          {/* Header */}
       <header className="bg-gradient-to-r from-blue-800 via-blue-900 to-indigo-900 backdrop-blur-sm border-b sticky top-0 z-10 shadow-lg">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -409,30 +433,7 @@ export default function App() {
               <Calendar className="w-4 h-4" />
               Calendar
             </button>
-            <button
-              onClick={() => {
-                console.log("Profile button clicked");
-                setActiveTab("profile");
-              }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                backgroundColor: activeTab === "profile" ? "#3b82f6" : "transparent",
-                border: "1px solid #3b82f6",
-                color: activeTab === "profile" ? "white" : "#3b82f6",
-                padding: "8px 16px",
-                borderRadius: "6px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "500"
-              }}
-            >
-              <User className="w-4 h-4" />
-              Profile
-            </button>
-          </div>
-
+</div>
           {/* Home Tab */}
           {activeTab === "home" && (
             <div className="space-y-6">
@@ -688,6 +689,11 @@ export default function App() {
         personalInfo={personalInfo}
         onSave={handleSavePersonalInfo}
       />
+
+      </div>
+      )}
+
+      <Toaster position="top-center" richColors />
     </div>
   );
 }
