@@ -241,6 +241,7 @@ export default function App() {
 
                     // Allow Google sign-in for users who have signed up with email/password
                     console.log('Google sign-in successful for user:', session.user.email);
+                    console.log('User metadata:', session.user.user_metadata);
 
                     // Prevent duplicate logins
                     if (!currentUser) {
@@ -248,7 +249,7 @@ export default function App() {
                       handleLogin(session.user.email || '', session.access_token, session.user);
                       toast.success("Welcome back!");
 
-                      // Clean up URL parameters after a longer delay to ensure login completes
+                      // Clean up URL parameters immediately to improve loading speed
                       setTimeout(() => {
                         try {
                           console.log('Cleaning up URL parameters');
@@ -257,7 +258,7 @@ export default function App() {
                         } catch (error) {
                           console.error('Error cleaning up URL:', error);
                         }
-                      }, 2000); // Increased delay for OAuth stability
+                      }, 500); // Reduced delay for faster loading
                     } else {
                       console.log('User already logged in, skipping duplicate login');
                     }
